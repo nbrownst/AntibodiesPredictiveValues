@@ -100,3 +100,6 @@ results1=fullPPVNPVresults(sens.input,spec.input,prev.input)
 PPVplot=makePPVplot(results1)
 NPVplot=makeNPVplot(results1)
 
+#####print plots################
+PPVplot
+NPVplot
