@@ -19,8 +19,11 @@
 
 
 #The file "formattedTestsMay23.csv" contains input information on sensitivity/specificity for EUA tests.
+#An updated version for the revision is "formattedTestsNov23.csv".
+#The 89 total tests were then saved with the new name: formattedTestsFull.csv
+#If a particular company reported IgG, IgM and combined, we kept the combined only, which left 61 tests, saved in: formattedTestsCombOnly.csv
 
-#This file is needed to run "FDAtestsandLocations.R"
+#The full and combined only files are needed to run "FDAtestsandLocations.R"
 
 
 
