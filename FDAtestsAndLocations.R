@@ -1,5 +1,6 @@
 #program to generate FDA table, plots, and area studies
 #written by Naomi Brownstein, May 2020
+#updated Nov 24, 2020
 
 ############################################################
 #install/load necessary packages
@@ -66,74 +67,219 @@ ggplotPPVbyPrev=function(dataset,myfilename){
 
 ##########################################33
 #load FDA test information: change this to your directory
+#updated Nov 24, 2020
 ##########################################33
 
-setwd("M:\\lab\\Lab_Brownstein\\Research\\ScreeningTests")
-tests=read.csv("formattedTestsMay23.csv",header=TRUE)
+setwd("M:\\lab\\Lab_Brownstein\\Research\\ScreeningTests\\Antibodies\\R1\\code_drafts")
+tests.full=read.csv("formattedTestsFull.csv",header=TRUE)
+tests.combOnly=read.csv("formattedTestsCombOnly.csv",header=TRUE)
 
 
 ############################################################
 ###prepare data for FDA tests in paper########
 ############################################################
-#parameters
-FDA.sens=cbind(tests$sensLCL,tests$sens,tests$sensUCL)
-FDA.spec=cbind(tests$specLCL,tests$spec,tests$specUCL)
+#parameters (full: all tests)
+FDA.sens=cbind(tests.full$sensLCL,tests.full$sens,tests.full$sensUCL)
+FDA.spec=cbind(tests.full$specLCL,tests.full$spec,tests.full$specUCL)
 FDA.prev=seq(0.005,0.1,0.005)
+
+#parameters (combined only: remove extra IgG and IgM)
+FDA.sens.combOnly=cbind(tests.combOnly$sensLCL,tests.combOnly$sens,tests.combOnly$sensUCL)
+FDA.spec.combOnly=cbind(tests.combOnly$specLCL,tests.combOnly$spec,tests.combOnly$specUCL)
 
 
 
 ############################################################
 ###generate plots for each serology test########
 ############################################################
-for(i in 1:nrow(tests)){
+#graphs for all tests 
+#no need to rerun for subset
+collectallpdfnames=rep("",nrow(tests.full))
+for(i in 1:nrow(tests.full)){
   FDA.results=fullPPVNPVresults(FDA.sens[i,],FDA.spec[i,],FDA.prev)
-  pdfname=paste(tests$Test[i],tests$Type[i],".pdf")
+  pdfname=paste(tests.full$Test[i],tests.full$Type[i],".pdf")
   ggplotPPVbyPrev(FDA.results,pdfname)
+  collectallpdfnames[i]=pdfname
 }
+
 
 
 
 ############################################################
 ###output results of tests to send to Excel########
 ############################################################
+#all
 #prevalences for PPV/false positives
-prev1pct=rep(0.01,nrow(tests))
-prev10pct=rep(0.1,nrow(tests))
+prev1pct=rep(0.01,nrow(tests.full))
+prev5pct=rep(0.05,nrow(tests.full))
+prev10pct=rep(0.1,nrow(tests.full))
+
+#subset
+prev1pctCombOnly=rep(0.01,nrow(tests.combOnly))
+prev5pctCombOnly=rep(0.05,nrow(tests.combOnly))
+prev10pctCombOnly=rep(0.1,nrow(tests.combOnly))
+
 
 #input parameters for p=0.01
-calc1=cbind(tests$sens,tests$spec,prev1pct)
-calc1LCL=cbind(tests$sensLCL,tests$specLCL,prev1pct)
-calc1UCL=cbind(tests$sensUCL,tests$specUCL,prev1pct)
+calc1=cbind(tests.full$sens,tests.full$spec,prev1pct)
+calc1LCL=cbind(tests.full$sensLCL,tests.full$specLCL,prev1pct)
+calc1UCL=cbind(tests.full$sensUCL,tests.full$specUCL,prev1pct)
+
+#subset
+calc1.combOnly=cbind(tests.combOnly$sens,tests.combOnly$spec,prev1pctCombOnly)
+calc1LCL.combOnly=cbind(tests.combOnly$sensLCL,tests.combOnly$specLCL,prev1pctCombOnly)
+calc1UCL.combOnly=cbind(tests.combOnly$sensUCL,tests.combOnly$specUCL,prev1pctCombOnly)
+
+#input parameters for p=0.05
+calc5=cbind(tests.full$sens,tests.full$spec,prev5pct)
+calc5LCL=cbind(tests.full$sensLCL,tests.full$specLCL,prev5pct)
+calc5UCL=cbind(tests.full$sensUCL,tests.full$specUCL,prev5pct)
+
+#subset
+calc5.combOnly=cbind(tests.combOnly$sens,tests.combOnly$spec,prev5pctCombOnly)
+calc5LCL.combOnly=cbind(tests.combOnly$sensLCL,tests.combOnly$specLCL,prev5pctCombOnly)
+calc5UCL.combOnly=cbind(tests.combOnly$sensUCL,tests.combOnly$specUCL,prev5pctCombOnly)
+
 
 #input parameters for p=0.1
-calc10=cbind(tests$sens,tests$spec,prev10pct)
-calc10LCL=cbind(tests$sensLCL,tests$specLCL,prev10pct)
-calc10UCL=cbind(tests$sensUCL,tests$specUCL,prev10pct)
+calc10=cbind(tests.full$sens,tests.full$spec,prev10pct)
+calc10LCL=cbind(tests.full$sensLCL,tests.full$specLCL,prev10pct)
+calc10UCL=cbind(tests.full$sensUCL,tests.full$specUCL,prev10pct)
+
+#subset
+calc10.combOnly=cbind(tests.combOnly$sens,tests.combOnly$spec,prev10pctCombOnly)
+calc10LCL.combOnly=cbind(tests.combOnly$sensLCL,tests.combOnly$specLCL,prev10pctCombOnly)
+calc10UCL.combOnly=cbind(tests.combOnly$sensUCL,tests.combOnly$specUCL,prev10pctCombOnly)
+
 
 #calculate PPV for p=0.01
 FDA1=t(apply(calc1,1,getPPVandNPV))
 FDA1LCL=t(apply(calc1LCL,1,getPPVandNPV))
 FDA1UCL=t(apply(calc1UCL,1,getPPVandNPV))
 
+#subset
+FDA1.combOnly=t(apply(calc1.combOnly,1,getPPVandNPV))
+FDA1LCL.combOnly=t(apply(calc1LCL.combOnly,1,getPPVandNPV))
+FDA1UCL.combOnly=t(apply(calc1UCL.combOnly,1,getPPVandNPV))
+
+
+#calculate PPV for p=0.05
+FDA5=t(apply(calc5,1,getPPVandNPV))
+FDA5LCL=t(apply(calc5LCL,1,getPPVandNPV))
+FDA5UCL=t(apply(calc5UCL,1,getPPVandNPV))
+
+#subset
+FDA5.combOnly=t(apply(calc5.combOnly,1,getPPVandNPV))
+FDA5LCL.combOnly=t(apply(calc5LCL.combOnly,1,getPPVandNPV))
+FDA5UCL.combOnly=t(apply(calc5UCL.combOnly,1,getPPVandNPV))
+
 #calculate PPV for p=0.1
 FDA10=t(apply(calc10,1,getPPVandNPV))
 FDA10LCL=t(apply(calc10LCL,1,getPPVandNPV))
 FDA10UCL=t(apply(calc10UCL,1,getPPVandNPV))
 
+#subset
+FDA10.combOnly=t(apply(calc10.combOnly,1,getPPVandNPV))
+FDA10LCL.combOnly=t(apply(calc10LCL.combOnly,1,getPPVandNPV))
+FDA10UCL.combOnly=t(apply(calc10UCL.combOnly,1,getPPVandNPV))
+
+
 #put each estimate with the upper and lower bounds
+#full
 FDA1withCL=cbind(FDA1LCL[,1],FDA1[,1],FDA1UCL[,1])
+FDA5withCL=cbind(FDA5LCL[,1],FDA5[,1],FDA5UCL[,1])
 FDA10withCL=cbind(FDA10LCL[,1],FDA10[,1],FDA10UCL[,1])
-FDAPPVests=cbind(FDA1withCL,FDA10withCL)
-write.csv(FDAPPVests,"FDAPPV.csv")
+FDAPPVests=cbind(FDA1withCL,FDA5withCL,FDA10withCL)
+
+#subset
+FDA1withCL.combOnly=cbind(FDA1LCL.combOnly[,1],FDA1.combOnly[,1],FDA1UCL.combOnly[,1])
+FDA5withCL.combOnly=cbind(FDA5LCL.combOnly[,1],FDA5.combOnly[,1],FDA5UCL.combOnly[,1])
+FDA10withCL.combOnly=cbind(FDA10LCL.combOnly[,1],FDA10.combOnly[,1],FDA10UCL.combOnly[,1])
+FDAPPVests.combOnly=
+  cbind(FDA1withCL.combOnly,FDA5withCL.combOnly,FDA10withCL.combOnly)
+
+#write.csv(FDAPPVests,"FDAPPV.csv")
+#write.csv(FDAPPVests.combOnly,"FDAPPVcombOnly.csv")
 
 
 #convert to false positives
 FDAfalsep1=cbind(1-FDA1UCL[,1],1-FDA1[,1],1-FDA1LCL[,1])
+FDAfalsep5=cbind(1-FDA5UCL[,1],1-FDA5[,1],1-FDA5LCL[,1])
 FDAfalsep10=cbind(1-FDA10UCL[,1],1-FDA10[,1],1-FDA10LCL[,1])
-FDAfps=cbind(FDAfalsep1,FDAfalsep10)
-write.csv(round(100*FDAfps,1),"FDAfalsepos.csv")
-####################################
+FDAfps=cbind(FDAfalsep1,FDAfalsep5,FDAfalsep10)
+#write.csv(round(100*FDAfps,1),"FDAfalsepos.csv")
 
+
+#subset
+FDAfp1.co=cbind(1-FDA1UCL.combOnly[,1],
+                    1-FDA1.combOnly[,1],1-FDA1LCL.combOnly[,1])
+FDAfp5.co=cbind(1-FDA5UCL.combOnly[,1],
+                    1-FDA5.combOnly[,1],1-FDA5LCL.combOnly[,1])
+FDAfp10.co=cbind(1-FDA10UCL.combOnly[,1],
+                     1-FDA10.combOnly[,1],1-FDA10LCL.combOnly[,1])
+FDAfps.co=cbind(FDAfp1.co,FDAfp5.co,FDAfp10.co)
+colnames(FDAfps.co)=c("fp1LCL","fp1PE","fp1UCL",
+                   "fp5LCL","fp5PE","fp5UCL",
+                   "fp10LCL","fp10PE","fp10UCL")
+
+FDAfalsep1.co=paste(as.character(format(100*(1-FDA1.combOnly[,1]),digits=1,nsmall=1)),
+                    "(",
+                    as.character(format(100*(1-FDA1UCL.combOnly[,1]),digits=1,nsmall=1)),
+                    ",",
+                    as.character(format(100*(1-FDA1LCL.combOnly[,1]),digits=1,nsmall=1)),
+                    ")"
+                      )
+FDAfalsep5.co=paste(as.character(format(100*(1-FDA5.combOnly[,1]),digits=1,nsmall=1)),
+                    "(",
+                    as.character(format(100*(1-FDA5UCL.combOnly[,1]),digits=1,nsmall=1)),
+                    ",",
+                    as.character(format(100*(1-FDA5LCL.combOnly[,1]),digits=1,nsmall=1)),
+                    ")"
+)
+FDAfalsep10.co=paste(as.character(format(100*(1-FDA10.combOnly[,1]),digits=1,nsmall=1)),
+                    "(",
+                    as.character(format(100*(1-FDA10UCL.combOnly[,1]),digits=1,nsmall=1)),
+                    ",",
+                    as.character(format(100*(1-FDA10LCL.combOnly[,1]),digits=1,nsmall=1)),
+                    ")"
+)
+####################################
+#new code: automate tables
+FDAtable.combOnly=
+  cbind(
+    as.character(tests.combOnly$Test),
+    as.character(tests.combOnly$testType),
+    as.character(tests.combOnly$sens_and_CI),
+    as.character(tests.combOnly$spec_and_CI),
+    as.character(tests.combOnly$N),  
+    FDA1
+    FDAfalsep5.co,
+    FDAfalsep10.co,
+      #FPR y% (CI) (for each prev chosen), 1 dec
+    as.character('\\')  )
+write.table(FDAtable.combOnly,"FDAtable.combOnly.txt",sep="&",row.names=FALSE)
+
+#results only (no latex formatting)
+FDAtable.combOnly.num=cbind(tests.combOnly,FDAfps.co)
+write.csv(FDAtable.combOnly.num,"FDAtable.combOnly.num.csv")
+
+#output names for easy input into LaTeX
+command=cbind(#" ",
+  #as.character("hfill"),
+  #as.character("subfloat"),sep="\\"),
+  #as.character("\\hfill\\subfloat\["),
+  as.character(tests.full$Test),
+  #as.character("]{\includegraphics[width=0.45\textwidth]{'"),
+  as.character(collectallpdfnames)#,
+  #as.character("\label{"),
+#  as.character(tests.full$Test),
+#  as.character("}}")
+#sep=""
+)
+#\subfloat[Cellex]{\includegraphics[width=0.45\textwidth]{Cellex Combined .pdf} \label{Cellex}}  
+colnames(command)
+write.table(command,"pdfnames.txt",row.names=FALSE,col.names=c("company","pdf"))
+##################################
 
 #########################################################
 ###############################Area studies
